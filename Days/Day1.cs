@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AdventOfCode.Days
+namespace AdventOfCode2020.Days
 {
     public static class Day1
     {
@@ -17,17 +17,17 @@ namespace AdventOfCode.Days
         private static int Part1(List<int> numbers)
         {
             for (var i = 0; i < numbers.Count - 2; i++)
-            for (var j = i + 1; j < numbers.Count; j++)
-            {
-                var number1 = numbers[i];
-                var number2 = numbers[j];
-
-                if (number1 + number2 == 2020)
+                for (var j = i + 1; j < numbers.Count; j++)
                 {
-                    Console.WriteLine($"Numbers: {number1} & {number2}");
-                    return number1 * number2;
+                    var number1 = numbers[i];
+                    var number2 = numbers[j];
+
+                    if (number1 + number2 == 2020)
+                    {
+                        Console.WriteLine($"Numbers: {number1} & {number2}");
+                        return number1 * number2;
+                    }
                 }
-            }
 
             return -1;
         }
@@ -35,20 +35,20 @@ namespace AdventOfCode.Days
         private static int Part2(List<int> numbers)
         {
             for (var i = 0; i < numbers.Count - 2; i++)
-            for (var j = i + 1; j < numbers.Count; j++)
-            for (var k = j + 1; k < numbers.Count; k++)
-            {
-                var number1 = numbers[i];
-                var number2 = numbers[j];
-                var number3 = numbers[k];
+                for (var j = i + 1; j < numbers.Count; j++)
+                    for (var k = j + 1; k < numbers.Count; k++)
+                    {
+                        var number1 = numbers[i];
+                        var number2 = numbers[j];
+                        var number3 = numbers[k];
 
-                if (number1 + number2 + number3 == 2020)
-                {
-                    Console.WriteLine($"Numbers: {number1} & {number2} & {number3}");
-                    return number1 * number2 * number3;
-                }
-            }
-            
+                        if (number1 + number2 + number3 == 2020)
+                        {
+                            Console.WriteLine($"Numbers: {number1} & {number2} & {number3}");
+                            return number1 * number2 * number3;
+                        }
+                    }
+
             return -1;
         }
     }

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using AdventOfCode.Days;
+using AdventOfCode2020.Days;
 
 var Days = new Dictionary<int, Action> {
-    {1, () => Day1.Run()}
+    {1, () => Day1.Run()},
+    {2, () => Day2.Run()}
 };
 
 while (true)
