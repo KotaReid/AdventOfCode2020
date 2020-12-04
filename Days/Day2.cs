@@ -5,10 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode2020.Days
 {
-    public record Password(int FirstPolicy, int SecondPolicy, char PolicyChar, string Value);
-
     public static class Day2
     {
+        private record Password(int FirstPolicy, int SecondPolicy, char PolicyChar, string Value);
+
         public static void Run()
         {
             var passwords = Utils.ReadFromFile("Day2.txt").Select(ToPassword).ToList();
