@@ -171,8 +171,6 @@ namespace AdventOfCode2020.Days
             }
         }
 
-
-
         private static Seat[] ParseSeatLayout(string s)
         {
             s = s.Trim();
