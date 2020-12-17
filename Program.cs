@@ -18,7 +18,8 @@ var Days = new Dictionary<int, Action> {
     {13, () => Day13.Run()},
     {14, () => Day14.Run()},
     {15, () => Day15.Run()},
-    {16, () => Day16.Run()}
+    {16, () => Day16.Run()},
+    {17, () => Day17.Run()}
 };
 
 while (true)
