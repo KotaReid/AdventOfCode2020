@@ -10,116 +10,126 @@ namespace AdventOfCode2020.Days
     {
         public static void Run()
         {
-            var (p1, p2) = ParsePlayerDecks(Utils.ReadFileAsString("Day22.txt"));
+            var (playerOne, playerTwo) = ParsePlayerDecks(Utils.ReadFileAsString("Day22.txt"));
 
-            Console.WriteLine($"Part 1: {Part1(new Queue<int>(p1), new Queue<int>(p2))}");
-            Console.WriteLine($"Part 2: {Part2(p1, p2)}");
+            var savedDeckOne = playerOne.Deck.ToList();
+            var savedDeckTwo = playerTwo.Deck.ToList();
+
+            Console.WriteLine($"Part 1: {Part1(playerOne, playerTwo)}");
+
+            playerOne.ResetDeck(savedDeckOne);
+            playerTwo.ResetDeck(savedDeckTwo);
+
+            Console.WriteLine($"Part 2: {Part2(playerOne, playerTwo)}");
         }
 
-        private static long Part1(Queue<int> p1, Queue<int> p2)
+        private static long Part1(Player playerOne, Player playerTwo)
         {
-            while (p1.Count > 0 && p2.Count > 0)
+            while (!playerOne.HasEmptyDeck && !playerTwo.HasEmptyDeck)
             {
-                var card1 = p1.Dequeue();
-                var card2 = p2.Dequeue();
+                var card1 = playerOne.DrawCard();
+                var card2 = playerTwo.DrawCard();
 
                 if (card1 > card2)
-                {
-                    p1.Enqueue(card1);
-                    p1.Enqueue(card2);
-                }
+                    playerOne.AddToBottomOfDeck(card1, card2);
                 else
-                {
-                    p2.Enqueue(card2);
-                    p2.Enqueue(card1);
-                }
+                    playerTwo.AddToBottomOfDeck(card2, card1);
             }
 
-            return p1.Count > 0 ? CalculateScore(p1) : CalculateScore(p2);
+            return playerOne.HasEmptyDeck ? playerTwo.CalculateScore() : playerOne.CalculateScore();
         }
 
-        private enum Winner
-        {
-            Player1,
-            Player2
-        }
+        private static long Part2(Player playerOne, Player playerTwo) => PlayRecursiveGame(playerOne, playerTwo).CalculateScore();
 
-        private static long Part2(Queue<int> p1, Queue<int> p2)
+        private static Player PlayRecursiveGame(Player playerOne, Player playerTwo)
         {
-            var (winner, player1, player2) = PlayRecursiveGame(new Queue<int>(p1), new Queue<int>(p2));
-            return winner is Winner.Player1 ? CalculateScore(player1) : CalculateScore(player2);
-        }
+            var rounds = new List<Round>();
 
-        private static (Winner Winner, Queue<int> Player1, Queue<int> Player2) PlayRecursiveGame(Queue<int> playerOne, Queue<int> playerTwo)
-        {
-            var rounds = new List<(List<int> Player1, List<int> Player2)>();
-
-            while (playerOne.Count > 0 && playerTwo.Count > 0)
+            while (!playerOne.HasEmptyDeck && !playerTwo.HasEmptyDeck)
             {
-                foreach (var round in rounds)
+                if (rounds.Any(round => playerOne.IsSameDeck(round.PlayerOneDeck) || playerTwo.IsSameDeck(round.PlayerTwoDeck)))
+                    return playerOne;
+
+                var previousRound = new Round(playerOne.Deck.ToList(), playerTwo.Deck.ToList());
+                rounds.Add(previousRound);
+
+                var card1 = playerOne.DrawCard();
+                var card2 = playerTwo.DrawCard();
+
+                if (card1 <= playerOne.Deck.Count() && card2 <= playerTwo.Deck.Count())
                 {
-                    if ((playerOne.Count == round.Player1.Count() && Enumerable.SequenceEqual(playerOne, round.Player1)) ||
-                        (playerTwo.Count == round.Player2.Count() && Enumerable.SequenceEqual(playerTwo, round.Player2)))
-                    {
-                        return (Winner.Player1, playerOne, playerTwo);
-                    }
-                }
-
-                rounds.Add((playerOne.ToList(), playerTwo.ToList()));
-
-                var card1 = playerOne.Dequeue();
-                var card2 = playerTwo.Dequeue();
-
-                if (card1 <= playerOne.Count() && card2 <= playerTwo.Count())
-                {
-                    var winner = PlayRecursiveGame(new Queue<int>(playerOne.Take(card1)), new Queue<int>(playerTwo.Take(card2))).Winner;
-
-                    if (winner is Winner.Player1)
-                    {
-                        playerOne.Enqueue(card1);
-                        playerOne.Enqueue(card2);
-                    }
-                    else
-                    {
-                        playerTwo.Enqueue(card2);
-                        playerTwo.Enqueue(card1);
-                    }
+                    var winner = PlaySubGame(previousRound, card1, card2);
+                    PerformRoundWin(winner == playerOne, card1, card2);
                 }
                 else
                 {
-                    if (card1 > card2)
-                    {
-                        playerOne.Enqueue(card1);
-                        playerOne.Enqueue(card2);
-                    }
-                    else
-                    {
-                        playerTwo.Enqueue(card2);
-                        playerTwo.Enqueue(card1);
-                    }
+                    PerformRoundWin(card1 > card2, card1, card2);
                 }
             }
 
-            return (playerOne.Count > 0 ? Winner.Player1 : Winner.Player2, playerOne, playerTwo);
+            Player PlaySubGame(Round previousRound, int card1, int card2)
+            {
+                playerOne.SetDeckToTopCards(card1);
+                playerTwo.SetDeckToTopCards(card2);
+
+                var winner = PlayRecursiveGame(playerOne, playerTwo);
+
+                playerOne.ResetDeck(previousRound.PlayerOneDeck.Skip(1));
+                playerTwo.ResetDeck(previousRound.PlayerTwoDeck.Skip(1));
+
+                return winner;
+            }
+
+            void PerformRoundWin(bool isPlayerOne, int card1, int card2)
+            {
+                if (isPlayerOne)
+                    playerOne.AddToBottomOfDeck(card1, card2);
+                else
+                    playerTwo.AddToBottomOfDeck(card2, card1);
+            }
+
+            return playerOne.HasEmptyDeck ? playerTwo : playerOne;
         }
 
-        private static long CalculateScore(Queue<int> winningDeck)
-        {
-            var score = 0;
-            foreach (var card in winningDeck.Reverse().Select((num, i) => (Value: num, Multiplier: i + 1)))
-                score += (card.Value * card.Multiplier);
-
-            return score;
-        }
-
-        private static (Queue<int> PlayerOneDeck, Queue<int> PlayerTwoDeck) ParsePlayerDecks(string input)
+        private static (Player player1, Player player2) ParsePlayerDecks(string input)
         {
             var players = input.Split(Environment.NewLine + Environment.NewLine);
 
             var playerOneDeck = players.First().Split(Environment.NewLine).Skip(1).Select(s => Int32.Parse(s.Trim()));
             var playerTwoDeck = players.Last().Split(Environment.NewLine).Skip(1).Select(s => Int32.Parse(s.Trim()));
 
-            return (new Queue<int>(playerOneDeck), new Queue<int>(playerTwoDeck));
+            return (new Player(playerOneDeck), new Player(playerTwoDeck));
+        }
+
+        private record Round(List<int> PlayerOneDeck, List<int> PlayerTwoDeck);
+
+        private class Player
+        {
+            public Player(IEnumerable<int> deck)
+            {
+                Deck = new Queue<int>(deck);
+            }
+
+            public Queue<int> Deck { get; private set; }
+
+            public bool HasEmptyDeck => Deck.Count == 0;
+
+            public bool IsSameDeck(IEnumerable<int> otherDeck) => Deck.SequenceEqual(otherDeck);
+
+            public int DrawCard() => Deck.Dequeue();
+
+            public void AddToBottomOfDeck(int cardOne, int cardTwo)
+            {
+                Deck.Enqueue(cardOne);
+                Deck.Enqueue(cardTwo);
+            }
+
+            public void SetDeckToTopCards(int count) => ResetDeck(Deck.Take(count));
+
+            public void ResetDeck(IEnumerable<int> deck) => Deck = new Queue<int>(deck);
+
+            public long CalculateScore() => Deck.Reverse().Select((card, i) => card * (i + 1)).Sum();
+
         }
     }
 }
