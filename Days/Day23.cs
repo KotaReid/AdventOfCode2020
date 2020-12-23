@@ -1,4 +1,3 @@
-using System.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +8,7 @@ namespace AdventOfCode2020.Days
     {
         public static void Run()
         {
-            var input = "389125467";
-            //var input = "614752839";
+            var input = "614752839";
 
             Console.WriteLine($"Part 1: {Part1(input)}");
             Console.WriteLine($"Part 2: {Part2(input)}");
@@ -26,7 +24,7 @@ namespace AdventOfCode2020.Days
             var cup = PlayGame(cups.ToDictionary(cup => cup.Label, cup => cup), moves: 100, maxValue: 9);
 
             var answer = string.Empty;
-            for (var i = 0; i < cups.Count; i++)
+            for (var i = 0; i < cups.Count - 1; i++)
             {
                 answer += cup.NextCup.Label;
                 cup = cup.NextCup;
@@ -38,7 +36,7 @@ namespace AdventOfCode2020.Days
         private static long Part2(string input)
         {
             var cups = input.Select(c => Int32.Parse(c.ToString()))
-                            .Concat(Enumerable.Range(10, 1000000))
+                            .Concat(Enumerable.Range(10, 1000000 - 9))
                             .Select(i => new Cup { Label = i })
                             .ToList();
 
@@ -57,7 +55,7 @@ namespace AdventOfCode2020.Days
             for (var move = 1; move <= moves; move++)
             {
                 var firstPickedUpCup = currentCup.NextCup;
-                currentCup.NextCup = currentCup.NextCup.NextCup.NextCup;
+                currentCup.NextCup = firstPickedUpCup.NextCup.NextCup.NextCup;
 
                 var destinationLabel = SetDestination(currentCup.Label - 1);
 
