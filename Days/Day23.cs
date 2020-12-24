@@ -78,7 +78,7 @@ namespace AdventOfCode2020.Days
             int SetDestination(int i) => i <= 0 ? maxValue : i;
         }
 
-        public class Cup
+        private class Cup
         {
             public int Label { get; init; }
             public Cup NextCup { get; set; }
